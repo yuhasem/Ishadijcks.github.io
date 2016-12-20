@@ -29,6 +29,8 @@
 	<script src="breeding.js"></script>
 	<script src="types.js"></script>
 	<script src="mining.js"></script>
+	<script src="cardgame.js"></script>
+	<script src="cardList.js"></script>
 	
 	<!-- Latest compiled and minified CSS -->
 	<link href="bootstrap.css" rel="stylesheet"><!-- Optional theme -->
@@ -661,6 +663,7 @@
 						<a style="text-decoration:none; color:white;" href="https://reddit.com/r/pokeclicker" target="_blank"><button class="btn-info" id="subredditButton">Subreddit</button></a>
 						<a style="text-decoration:none; color:white;" href="http://kiwiirc.com/client/irc.freenode.net/pokeclicker" target="_blank"><button class="btn-success" id="chatButton">Chat</button></a>
 						<button class="btn-info" id="mineButton">Underground</button>
+						<button class="btn-info" id="cardGameButton">Card Game</button>
 						
 
 					</div>
@@ -991,6 +994,28 @@
                         </div>
                     </div>
                 </div>
+				
+				<!-- Card Game Modal -->
+				<div aria-labelledby="myModalLabel" class="modal fade" id="cardGameModal" role="dialog" tabindex="-1">
+					<div class="modal-dialog" role="document" id="cardGame">
+						<div class="modal-content">
+							<div class="modal-header">
+								<ul class="nav nav-tabs">
+									<li class="active"><a onClick='showCardGame()' data-toggle="tab" href="#CardGameTab">Card Game</a></li>
+									<li><a data-toggle="tab" onClick='showDeckBuilder()' href="#deckTab">Deck Builder</a></li>
+								</ul>
+								<div class="tab-content">
+									<div id="CardGameTab" class="tab-pane fade active in">
+										<div id="cardGameBody"></div>
+									</div>
+									<div id="deckTab" class="tab-pane fade">
+										<div id="deckBuilderBody"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
 
 

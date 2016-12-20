@@ -86,6 +86,11 @@ var player = {
         energyGainUpgrades: 0,
         dailyDeals: [],
     },
+	cards: {
+		maxDeck: 40,
+		deck: [],
+		availableCards: {}
+	},
 	oakItemsEquipped: [],
 	gymsDefeated: Array.apply(null, Array(15)).map(Number.prototype.valueOf,0),
 	dungeonsDefeated: Array.apply(null, Array(15)).map(Number.prototype.valueOf,0),
@@ -237,6 +242,7 @@ $(document).ready(function(){
 		if(player.starter != "none"){
 			$('#pickStarter').modal("hide")
 			capturePokemon(player.starter, 0);
+			updateAvailableCards();
 		}
 	})
 
@@ -367,6 +373,12 @@ $(document).ready(function(){
 		// Navbar Button controllers
 	$("body").on('click',"#shardButton", function(){
 		showShardModal();
+	})
+	
+	//Show Card Game Modal
+	$("body").on('click', "#cardGameButton", function() {
+		$("#cardGameModal").modal("show");
+		showCardGame();
 	})
 
 	$("body").on('click',".evoButton", function(){

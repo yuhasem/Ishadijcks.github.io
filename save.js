@@ -81,6 +81,15 @@ var load = function(){
 
 	player.catchTime = Math.max(player.catchTime,750);
 	player.version = version;
+	
+	var needsCards = true;
+	for (var key in player.cards.availableCards){
+		needsCards = false;
+		break;
+	}
+	if (needsCards){
+		updateAvailableCards();
+	}
 
     var link = document.createElement('link');
     link.type = 'image/x-icon';
