@@ -11,8 +11,9 @@ var showCardGame = function (){
 	}
 	html += "</div>";
 	html += "<div class='row'>";
-	html += 	"<span>Deck: " + game.sides[1].deck.length + "</span>";
-	html += 	"<span>Hand: " + game.sides[1].hand.length + "</span>";
+	html += 	"<span>Deck: " + game.sides[1].deck.length + "</span> ";
+	html += 	"<span>Hand: " + game.sides[1].hand.length + "</span> ";
+	html += 	"<span>Discard: " + game.sides[1].discard.length + "</span> ";
 	html += 	"<span>Defeated: " + game.sides[1].defeated + "</span>";
 	html += "</div>";
 	html += "<div class='row'>";
@@ -22,34 +23,39 @@ var showCardGame = function (){
 	html += "</div>";
 	html += "<div class='row'>";
 	for (var i = 0; i < game.sides[1].bench.length; i++){
-		html += "<span>" + (game.sides[1].bench[i] ? game.sides[1].bench[i].name : "Empty") + "</span>";
+		html += "<span class='pokemonCard'>" + pokeDisplay(game.sides[1].bench[i]) + "</span>";
 	}
 	html += "</div>";
-	html += "<div>" + (game.sides[1].active ? game.sides[1].active.name : "Empty") + "</div>";
-	html += "<div onClick='selectCard(0)'>" + (game.sides[0].active ? game.sides[0].active.name : "Empty") + "</div>";
-	/*if (game.playerActive){
-		html += "<span onClick='attack(1)'>Attack: " + game.playerActive.attack + "</span>";
-		if (game.playerActive.special > 0){
-			html += "<span onClick='special(1)'>" + game.playerActive.specialName + ": " + game.playerActive.special + "</span>";
-		}
-	}*/
+	html += "<div class='pokemonCard'>" + pokeDisplay(game.sides[1].active) + "</div>";
+	html += "<br>" //hue
+	html += "<div onClick='selectCard(0)' class='pokemonCard" + (selectedIndex == 0 && selected ? " selected" : "") + "'>" + pokeDisplay(game.sides[0].active) + "</div>";
 	if (game.sides[0].active){
 		html += "<div class='row'>";
 		for (var i = 0; i < game.sides[0].active.attacks.length; i++){
 			var att = game.sides[0].active.attacks[i];
-			html += "<span onClick='attack(0, + " + i + ")'>" + att.name + ": " + att.damage + "</span>";
+			html += "<span onClick='attack(0, + " + i + ")'>" + att.name + ": " + att.damage + " cost: ";
+			for (var type in game.sides[0].active.attacks[i].cost){
+				html += type + " x" + game.sides[0].active.attacks[i].cost[type];
+			}
+			html += "</span> ";
 		}
 		html += "</div>";
 	}
 	html += "<div class='row'>";
 	for (var i = 0; i < game.sides[0].bench.length; i++){
-		html += "<span onClick='selectCard("+(i+1)+")'>" + (game.sides[0].bench[i] ? game.sides[0].bench[i].name : "Empty") + "</span>";
+		html += "<span onClick='selectCard("+(i+1)+")' class='pokemonCard " + (selectedIndex == (i+1) && selected ? " selected" : "") + "'>" + pokeDisplay(game.sides[0].bench[i]) + "</span>";
 	}
 	html += "</div>";
 	html += "<div class='row'>";
 	for (var i = 0; i < game.sides[0].hand.length; i++){
-		html += "<span onClick='selectCard("+(i+6)+")'>" + (game.sides[0].hand[i] ? game.sides[0].hand[i].name : "Empty") + "</span>";
+		html += "<span onClick='selectCard("+(i+6)+")' " + (selectedIndex == (i+6) && selected ? "class='selected'" : "") + ">" + (game.sides[0].hand[i] ? game.sides[0].hand[i].name : "Empty") + "</span>";
 	}
+	html += "</div>";
+	html += "<div class='row'>";
+	html += 	"<span>Deck: " + game.sides[0].deck.length + "</span> ";
+	html += 	"<span>Hand: " + game.sides[0].hand.length + "</span> ";
+	html += 	"<span>Discard: " + game.sides[0].discard.length + "</span> ";
+	html += 	"<span>Defeated: " + game.sides[0].defeated + "</span>";
 	html += "</div>";
 	
 	html += "<br><br>";
@@ -58,6 +64,20 @@ var showCardGame = function (){
 	}
 	
 	$("#cardGameBody").html(html);
+}
+
+var pokeDisplay = function (poke) {
+	if (!poke){
+		return "Empty";
+	}
+	var html = "";
+	html += "<div><span>" + poke.name + "</span> <span>HP: " + poke.health + "/" + poke.maxHealth + "</span></div>";
+	html += "<div>";
+	for (var i = 0; i < poke.energy.length; i++){
+		html += "<span>" + poke.energy[i].name + "</span> ";
+	}
+	html += "</div>"
+	return html;
 }
 
 var showDeckBuilder = function () {
@@ -433,7 +453,8 @@ var attack = function (side, attack){
 				game.sides[side].active.onDealDamage(game, game.sides[side].active, game.sides[otherSide].active, damage);
 			}
 		}
-		//logMessage here
+		logMessage(game.sides[side].active.name + " attacks using " + game.sides[side].active.attacks[attack].name);
+		logMessage(game.sides[otherSide].active.name + " takes " + damage + " damage!");
 		game.sides[otherSide].active.health -= damage;
 		if (game.sides[otherSide].active.health <= 0){
 			fainted(otherSide, 0);
@@ -481,6 +502,19 @@ var switchActive = function (side, index){
 		if (game.sides[side].active.onActivate){
 			game.sides[side].active.onActivate(game, game.sides[side].active, side);
 		}
+		if (side){
+			if (game.sides[side].bench[index-1]){
+				logMessage("Opponent switches its " + game.sides[side].bench[index-1].name + " and " + game.sides[side].active.name);
+			} else {
+				logMessage("Opponent siwtches its " + game.sides[side].active.name + " to active");
+			}
+		} else {
+			if (game.sides[side].bench[index-1]){
+				logMessage("You switch your " + game.sides[side].bench[index-1].name + " and " + game.sides[side].active.name);
+			} else {
+				logMessage("You switch your " + game.sides[side].active.name + " to active");
+			}
+		}
 		game.pokemonAction = true;
 		return true;
 	}
@@ -497,6 +531,7 @@ var switchHand = function (index1, index2){
 }
 
 var playCard = function (side, card, index){
+	//needs logMessages TODO
 	if (!card || index < 0 || index > 5){
 		return false;
 	}
