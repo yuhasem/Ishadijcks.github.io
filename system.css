@@ -693,6 +693,14 @@ g, rect {
 
 }
 
+.pokemonCard{
+	display: inline-block;
+	border: 1px solid black;
+}
+.selected {
+	border: 2px solid red;
+}
+
 /* http://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting-using-css */
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
