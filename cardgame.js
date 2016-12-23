@@ -438,11 +438,29 @@ var attack = function (side, attack){
 	}
 	if (canUseAttack(side, attack)){
 		var attackObj = game.sides[side].active.attacks[attack];
+		logMessage(game.sides[side].active.name + " attacks using " + attackObj.name);
 		var damage = attackObj.damage;
 		if (attackObj.onUse){
 			damage = attackObj.onUse(game, game.sides[0].active);
 		}
 		//type advantage calcs go here TODO
+		switch (cardTypeAdvantages[typeToNumber(attackObj.element)][typeToNumber(game.sides[otherSide].active.element)]){
+			case 0:
+				damage = 0;
+				logMessage("It didn't do anything!");
+				break;
+			case 0.5:
+				damage = 10*Math.ceil(damage/20);
+				logMessage("It's not very effective...");
+				break;
+			case 2:
+				damage *= 2;
+				logMessage("It's super effective!");
+				break;
+			case 1:
+			default:
+				break;
+		}
 		if (damage > 0){
 			if (game.sides[otherSide].active.onTakeDamage){
 				damage = game.sides[otherSide].active.onTakeDamage(game, game.sides[side].active, game.sides[otherSide].active, damage); 
@@ -453,8 +471,9 @@ var attack = function (side, attack){
 				game.sides[side].active.onDealDamage(game, game.sides[side].active, game.sides[otherSide].active, damage);
 			}
 		}
-		logMessage(game.sides[side].active.name + " attacks using " + game.sides[side].active.attacks[attack].name);
-		logMessage(game.sides[otherSide].active.name + " takes " + damage + " damage!");
+		if (damage > 0){
+			logMessage(game.sides[otherSide].active.name + " takes " + damage + " damage!");
+		}
 		game.sides[otherSide].active.health -= damage;
 		if (game.sides[otherSide].active.health <= 0){
 			fainted(otherSide, 0);
@@ -802,3 +821,154 @@ var updateAvailableCards = function (){
 		console.log("We couldn't find your starter, so we couldn't build you a starting deck");
 	}
 }
+
+//I'm making this separate from the one in types.js because doing 3x damage in a not very effective matchup would be completely broken and impossible to balance for
+//I am however going to use the type numbers and numberToType from type.js
+var cardTypeAdvantages = [];
+
+for( var i = 0; i<18; i++){
+	var row = [];
+	for(var j = 0; j<18; j++){
+		row.push(1);
+	}
+	cardTypeAdvantages.push(row);
+}
+
+
+cardTypeAdvantages[NORMAL][ROCK] = 0.5;
+cardTypeAdvantages[NORMAL][GHOST] = 0;
+cardTypeAdvantages[NORMAL][STEEL] = 0.5;
+	
+cardTypeAdvantages[FIRE][FIRE] = 0.5;
+cardTypeAdvantages[FIRE][WATER] = 0.5;
+cardTypeAdvantages[FIRE][GRASS] = 2;
+cardTypeAdvantages[FIRE][ICE] = 2;
+cardTypeAdvantages[FIRE][BUG] = 2;
+cardTypeAdvantages[FIRE][ROCK] = 0.5;
+cardTypeAdvantages[FIRE][DRAGON] = 0.5;
+cardTypeAdvantages[FIRE][STEEL] = 2;
+
+cardTypeAdvantages[WATER][FIRE] = 2;
+cardTypeAdvantages[WATER][WATER] = 0.5;
+cardTypeAdvantages[WATER][GRASS] = 0.5;
+cardTypeAdvantages[WATER][GROUND] = 2;
+cardTypeAdvantages[WATER][ROCK] = 2;
+cardTypeAdvantages[WATER][DRAGON] = 0.5;
+
+cardTypeAdvantages[ELECTRIC][WATER] = 2;
+cardTypeAdvantages[ELECTRIC][ELECTRIC] = 0.5;
+cardTypeAdvantages[ELECTRIC][GRASS] = 0.5;
+cardTypeAdvantages[ELECTRIC][GROUND] = 0;
+cardTypeAdvantages[ELECTRIC][FLYING] = 2;
+cardTypeAdvantages[ELECTRIC][DRAGON] = 0.5;
+
+cardTypeAdvantages[GRASS][FIRE] = 0.5;
+cardTypeAdvantages[GRASS][WATER] = 2;
+cardTypeAdvantages[GRASS][GRASS] = 0.5;
+cardTypeAdvantages[GRASS][POISON] = 0.5;
+cardTypeAdvantages[GRASS][GROUND] = 2;
+cardTypeAdvantages[GRASS][FLYING] = 0.5;
+cardTypeAdvantages[GRASS][BUG] = 0.5;
+cardTypeAdvantages[GRASS][ROCK] = 2;
+cardTypeAdvantages[GRASS][DRAGON] = 0.5;
+cardTypeAdvantages[GRASS][STEEL] = 0.5;
+
+cardTypeAdvantages[ICE][FIRE] = 0.5;
+cardTypeAdvantages[ICE][WATER] = 0.5;
+cardTypeAdvantages[ICE][GRASS] = 2;
+cardTypeAdvantages[ICE][ICE] = 0.5;
+cardTypeAdvantages[ICE][GROUND] = 2;
+cardTypeAdvantages[ICE][FLYING] = 2;
+cardTypeAdvantages[ICE][DRAGON] = 2;
+cardTypeAdvantages[ICE][STEEL] = 0.5;
+
+cardTypeAdvantages[FIGHTING][NORMAL] = 2;
+cardTypeAdvantages[FIGHTING][ICE] = 2;
+cardTypeAdvantages[FIGHTING][POISON] = 0.5;
+cardTypeAdvantages[FIGHTING][FLYING] = 0.5;
+cardTypeAdvantages[FIGHTING][PSYCHIC] = 0.5;
+cardTypeAdvantages[FIGHTING][BUG] = 0.5;
+cardTypeAdvantages[FIGHTING][ROCK] = 2;
+cardTypeAdvantages[FIGHTING][GHOST] = 0;
+cardTypeAdvantages[FIGHTING][DARK] = 2;
+cardTypeAdvantages[FIGHTING][STEEL] = 2;
+cardTypeAdvantages[FIGHTING][FAIRY] = 0.5;
+
+cardTypeAdvantages[POISON][GRASS] = 2;
+cardTypeAdvantages[POISON][POISON] = 0.5;
+cardTypeAdvantages[POISON][GROUND] = 0.5;
+cardTypeAdvantages[POISON][ROCK] = 0.5;
+cardTypeAdvantages[POISON][GHOST] = 0.5;
+cardTypeAdvantages[POISON][STEEL] = 0;
+cardTypeAdvantages[POISON][FAIRY] = 2;
+
+cardTypeAdvantages[GROUND][FIRE] = 2;
+cardTypeAdvantages[GROUND][ELECTRIC] = 2;
+cardTypeAdvantages[GROUND][GRASS] = 0.5;
+cardTypeAdvantages[GROUND][POISON] = 2;
+cardTypeAdvantages[GROUND][FLYING] = 0;
+cardTypeAdvantages[GROUND][BUG] = 0.5;
+cardTypeAdvantages[GROUND][ROCK] = 2;
+cardTypeAdvantages[GROUND][STEEL] = 2;
+
+cardTypeAdvantages[FLYING][ELECTRIC] = 0.5;
+cardTypeAdvantages[FLYING][GRASS] = 2;
+cardTypeAdvantages[FLYING][FIGHTING] = 2;
+cardTypeAdvantages[FLYING][BUG] = 2;
+cardTypeAdvantages[FLYING][ROCK] = 0.5;
+cardTypeAdvantages[FLYING][STEEL] = 0.5;
+
+cardTypeAdvantages[PSYCHIC][FIGHTING] = 2;
+cardTypeAdvantages[PSYCHIC][POISON] = 2;
+cardTypeAdvantages[PSYCHIC][PSYCHIC] = 0.5;
+cardTypeAdvantages[PSYCHIC][DARK] = 0;
+cardTypeAdvantages[PSYCHIC][STEEL] = 0.5;
+
+cardTypeAdvantages[BUG][FIRE] = 0.5;
+cardTypeAdvantages[BUG][GRASS] = 2;
+cardTypeAdvantages[BUG][FIGHTING] = 0.5;
+cardTypeAdvantages[BUG][POISON] = 0.5;
+cardTypeAdvantages[BUG][FLYING] = 0.5;
+cardTypeAdvantages[BUG][PSYCHIC] = 2;
+cardTypeAdvantages[BUG][GHOST] = 0.5;
+cardTypeAdvantages[BUG][DARK] = 2;
+cardTypeAdvantages[BUG][STEEL] = 0.5;
+cardTypeAdvantages[BUG][FAIRY] = 0.5;
+
+cardTypeAdvantages[ROCK][FIRE] = 2;
+cardTypeAdvantages[ROCK][ICE] = 2;
+cardTypeAdvantages[ROCK][FIGHTING] = 0.5;
+cardTypeAdvantages[ROCK][GROUND] = 0.5;
+cardTypeAdvantages[ROCK][FLYING] = 2;
+cardTypeAdvantages[ROCK][BUG] = 2;
+cardTypeAdvantages[ROCK][STEEL] = 0.5;
+
+cardTypeAdvantages[GHOST][NORMAL] = 0;
+cardTypeAdvantages[GHOST][PSYCHIC] = 2;
+cardTypeAdvantages[GHOST][GHOST] = 2;
+cardTypeAdvantages[GHOST][DARK] = 0.5;
+
+cardTypeAdvantages[DRAGON][DRAGON] = 2;
+cardTypeAdvantages[DRAGON][STEEL] = 0.5;
+cardTypeAdvantages[DRAGON][FAIRY] = 0;
+
+cardTypeAdvantages[DARK][FIGHTING] = 0.5;
+cardTypeAdvantages[DARK][PSYCHIC] = 2;
+cardTypeAdvantages[DARK][GHOST] = 2;
+cardTypeAdvantages[DARK][DARK] = 0.5;
+cardTypeAdvantages[DARK][FAIRY] = 0.5;
+
+cardTypeAdvantages[STEEL][FIRE] = 0.5;
+cardTypeAdvantages[STEEL][WATER] = 0.5;
+cardTypeAdvantages[STEEL][ELECTRIC] = 0.5;
+cardTypeAdvantages[STEEL][ICE] = 2;
+cardTypeAdvantages[STEEL][ROCK] = 2;
+cardTypeAdvantages[STEEL][STEEL] = 0.5;
+cardTypeAdvantages[STEEL][FAIRY] = 2;
+
+cardTypeAdvantages[FAIRY][FIRE] = 0.5;
+cardTypeAdvantages[FAIRY][FIGHTING] = 2;
+cardTypeAdvantages[FAIRY][POISON] = 0.5;
+cardTypeAdvantages[FAIRY][DRAGON] = 2;
+cardTypeAdvantages[FAIRY][DARK] = 2;
+cardTypeAdvantages[FAIRY][STEEL] = 0.5;
