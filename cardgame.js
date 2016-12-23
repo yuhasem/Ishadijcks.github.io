@@ -33,11 +33,16 @@ var showCardGame = function (){
 		html += "<div class='row'>";
 		for (var i = 0; i < game.sides[0].active.attacks.length; i++){
 			var att = game.sides[0].active.attacks[i];
-			html += "<span onClick='attack(0, + " + i + ")'>" + att.name + ": " + att.damage + " cost: ";
+			html += "<span onClick='attack(0, + " + i + ")'>" + att.name + ": " + att.damage + "</span> "; // cost: ";
+			html += "<span>Type: " + energyTypeDisplay(att.element) + "</span> ";
+			html += "<span>Cost: </span>"
+			/*
 			for (var type in game.sides[0].active.attacks[i].cost){
 				html += type + " x" + game.sides[0].active.attacks[i].cost[type];
 			}
-			html += "</span> ";
+			*/
+			html += energyObjectDisplay(att.cost);
+			//html += "</span> ";
 		}
 		html += "</div>";
 	}
@@ -71,13 +76,48 @@ var pokeDisplay = function (poke) {
 		return "Empty";
 	}
 	var html = "";
+	var a = 1;
+	for (var i = 0; i < pokemonList.length; i++){
+		if (pokemonList[i].name === poke.species){
+			a = (i+1);
+			break;
+		}
+	}
+	html += "<div><img src='images/pokemon/" + a + ".png'>" + "</div>";
 	html += "<div><span>" + poke.name + "</span> <span>HP: " + poke.health + "/" + poke.maxHealth + "</span></div>";
-	html += "<div>";
+	html += "<div>Type: " + energyTypeDisplay(poke.element) + "</div>";
+	/*html += "<div>";
 	for (var i = 0; i < poke.energy.length; i++){
 		html += "<span>" + poke.energy[i].name + "</span> ";
 	}
-	html += "</div>"
+	html += "</div>"*/
+	html += "<div>Energy: ";
+	html += energyObjectDisplay(poke.energyTotal);
+	html += "</div>";
 	return html;
+}
+
+var energyObjectDisplay = function (obj) {
+	var html = "";
+	html += "<span>";
+	for (var type in obj){
+		var img = energyTypeDisplay(type);
+		for (var i = 0; i < obj[type]; i++){
+			html += img;
+		}
+	}
+	if (html === "<span>"){
+		html += "0";
+	}
+	html += "</span>";
+	return html;
+}
+
+var energyTypeDisplay = function (type) {
+	if (type === "colorless"){
+		type = "normal";
+	}
+	return "<img src='images/energy/" + type + ".png' width='20px' height='20px'>";
 }
 
 var showDeckBuilder = function () {
