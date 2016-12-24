@@ -114,6 +114,7 @@ var energyObjectDisplay = function (obj) {
 }
 
 var energyTypeDisplay = function (type) {
+	//energy images from http://ilkcmp.deviantart.com/art/Neo-Redux-Energy-Type-Icons-212735332
 	if (type === "colorless"){
 		type = "normal";
 	}
@@ -241,6 +242,7 @@ var startTurn = function (){
 	game.energyAction = false;
 	drawCard(0);
 	
+	showCardGame();
 }
 
 var endTurn = function (){
@@ -574,7 +576,11 @@ var switchActive = function (side, index){
 				logMessage("You switch your " + game.sides[side].active.name + " to active");
 			}
 		}
-		game.pokemonAction = true;
+		if (game.sides[side].bench[index-1]){
+			//Only prevent the team from attacking if they've switched two pokemon
+			//Instead of if they're moving in a new poke
+			game.pokemonAction = true;
+		}
 		return true;
 	}
 }
@@ -590,7 +596,6 @@ var switchHand = function (index1, index2){
 }
 
 var playCard = function (side, card, index){
-	//needs logMessages TODO
 	if (!card || index < 0 || index > 5){
 		return false;
 	}
@@ -603,6 +608,7 @@ var playCard = function (side, card, index){
 					return false;
 				} else {
 					game.sides[side].active = card;
+					logMessage((side ? "Your opponent plays " : "You play ") + game.sides[side].active.name + " to active!");
 					if (card.onPlay){
 						card.onPlay(game, side);
 					}
@@ -615,6 +621,7 @@ var playCard = function (side, card, index){
 					return false;
 				} else {
 					game.sides[side].bench[index-1] = card;
+					logMessage((side ? "Your opponent plays " : "You play ") + game.sides[side].bench[index-1].name + " to the bench!");
 					if (card.onPlay){
 						card.onPlay(game, side);
 					}
@@ -815,7 +822,6 @@ var opponentTurn = function (){
 		endGame(true);
 		return;
 	}
-	showCardGame();
 	startTurn();
 }
 

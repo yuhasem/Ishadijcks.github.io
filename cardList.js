@@ -27,6 +27,7 @@ var attacks = [
 	 } else {
 		 card.rageCounter = 1;
 	 }
+	 logMessage(card.name + "'s Rage is building!");
 	 return damage;
  }}
 ];
