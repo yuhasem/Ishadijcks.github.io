@@ -223,15 +223,17 @@ var isValidDeck = function (deck){
 }
 
 var endGame = function (win){
-	playingGame = false;
-	if (win){
-		logMessage("You Win!");
-		wins++;
-	} else {
-		logMessage("You Lose!");
-		losses++;
+	if (playingGame){
+		playingGame = false;
+		if (win){
+			logMessage("You Win!");
+			wins++;
+		} else {
+			logMessage("You Lose!");
+			losses++;
+		}
+		showCardGame();
 	}
-	showCardGame();
 }
 
 var startTurn = function (){
@@ -485,7 +487,6 @@ var attack = function (side, attack){
 		if (attackObj.onUse){
 			damage = attackObj.onUse(game, game.sides[0].active);
 		}
-		//type advantage calcs go here TODO
 		switch (cardTypeAdvantages[typeToNumber(attackObj.element)][typeToNumber(game.sides[otherSide].active.element)]){
 			case 0:
 				damage = 0;
@@ -541,12 +542,13 @@ var fainted = function (side, index){
 	}
 	poke.energy = [];
 	poke.energyTotal = {};
-	discard(side, poke);
 	game.sides[side].defeated++;
-	logMessage(poke.name += " fainted!");
+	logMessage(poke.name + " fainted!");
 	if (game.sides[side].defeated >= stopAfter){
 		endGame(side);
 	}
+	discard(side, poke); //Need to have onDiscard trigger after the end game check
+	//Actually the position of discard causes a confusing logMessage order...
 }
 
 var switchActive = function (side, index){
@@ -557,12 +559,6 @@ var switchActive = function (side, index){
 		var temp = game.sides[side].active;
 		game.sides[side].active = game.sides[side].bench[index-1];
 		game.sides[side].bench[index-1] = temp;
-		if (game.sides[side].bench[index-1] && game.sides[side].bench[index-1].onBench){
-			game.sides[side].bench[index-1].onBench(game, game.sides[side].bench[index-1], side);
-		}
-		if (game.sides[side].active.onActivate){
-			game.sides[side].active.onActivate(game, game.sides[side].active, side);
-		}
 		if (side){
 			if (game.sides[side].bench[index-1]){
 				logMessage("Opponent switches its " + game.sides[side].bench[index-1].name + " and " + game.sides[side].active.name);
@@ -575,6 +571,12 @@ var switchActive = function (side, index){
 			} else {
 				logMessage("You switch your " + game.sides[side].active.name + " to active");
 			}
+		}
+		if (game.sides[side].bench[index-1] && game.sides[side].bench[index-1].onBench){
+			game.sides[side].bench[index-1].onBench(game, game.sides[side].bench[index-1], side);
+		}
+		if (game.sides[side].active.onActivate){
+			game.sides[side].active.onActivate(game, game.sides[side].active, side);
 		}
 		if (game.sides[side].bench[index-1]){
 			//Only prevent the team from attacking if they've switched two pokemon
@@ -700,12 +702,12 @@ var attachEnergy = function (poke, energy){
 		} else {
 			poke.energyTotal[type] = energy.value;
 		}
+		logMessage(energy.name + " attached to " + poke.name + "!");
 		if (poke.onAttachEnergy){
 			poke.onAttachEnergy(game, poke, energy);
 		}
 		game.energyAction = true;
 	}
-	logMessage(energy.name + " attached to " + poke.name + "!");
 	return true;
 }
 
