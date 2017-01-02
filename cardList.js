@@ -157,6 +157,7 @@ var newCard = function (id){
 				temp.health = temp.maxHealth;
 				temp.energy = []
 				temp.energyTotal = {};
+				temp.status = "";
 			}
 			return temp;
 		}

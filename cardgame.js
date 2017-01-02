@@ -237,7 +237,11 @@ var endGame = function (win){
 }
 
 var startTurn = function (){
+	dealBrnDamage(1);
+	dealPsnDamage(1);
 	logMessage("It's your turn!");
+	slpEndCheck(0);
+	frzEndCheck(0);
 	game.sideTurn = 0;
 	game.turn++;
 	game.pokemonAction = false;
@@ -254,10 +258,78 @@ var endTurn = function (){
 		endGame(false);
 		return;
 	}
+	dealBrnDamage(0);
+	dealPsnDamage(0);
 	game.pokemonAction = false;
 	game.energyAction = false;
 	logMessage("It's you opponent's turn!");
+	slpEndCheck(1);
+	frzEndCheck(1);
+	//Technically, I think opponent's card draw should be here TODO
 	opponentTurn();
+}
+
+var dealBrnDamage = function (side){
+	if (game.sides[side].active && game.sides[side].active.status === "brn"){
+		game.sides[side].active.health -= 20;
+		logMessage(game.sides[side].active.name + " was hurt by its burn!");
+		if (game.sides[side].active.health <= 0){
+			fainted(side, 0);
+		}
+	}
+}
+
+var dealPsnDamage = function (side){
+	if (game.sides[side].active && game.sides[side].active.status === "psn"){
+		game.sides[side].active.health -= 10;
+		logMessage(game.sides[side].active.name + " was hurt by poison!");
+		if (game.sides[side].active.health <= 0){
+			fainted(side, 0);
+		}
+	}
+	for (var i = 0; i < game.sides[side].bench.length; i++){
+		if (game.sides[side].bench[i] && game.sides[side].bench[i].status === "psn"){
+			game.sides[side].bench[i].health -= 10;
+			logMessage(game.sides[side].bench[i].name + " was hurt by posion!");
+			if (game.sides[side].bench[i].health <= 0){
+				fainted(side, i+1);
+			}
+		}
+	}
+}
+
+var slpEndCheck = function (side){
+	if (game.sides[side].active && game.sides[side].active.status === "slp"){
+		if (Math.random() > 0.5){
+			game.sides[side].active.status = "";
+			logMessage(game.sides[side].active.name + " woke up!");
+		}
+	}
+	for (var i = 0; i < game.sides[side].bench.length; i++){
+		if (game.sides[side].bench[i] && game.sides[side].bench[i].status === "slp"){
+			if (Math.random() > 0.5){
+				game.sides[side].bench[i].status = "";
+				logMessage(game.sides[side].active.name + " woke up!");
+			}
+		}
+	}
+}
+
+var frzEndCheck = function (side){
+	if (game.sides[side].active && game.sides[side].active.status === "frz"){
+		if (Math.random() > 0.5){
+			game.sides[side].active.status = "";
+			logMessage(game.sides[side].active.name + " thawed out!");
+		}
+	}
+	for (var i = 0; i < game.sides[side].bench.length; i++){
+		if (game.sides[side].bench[i] && game.sides[side].bench[i].status === "frz"){
+			if (Math.random() > 0.5){
+				game.sides[side].bench[i].status = "";
+				logMessage(game.sides[side].active.name + " thawed out!");
+			}
+		}
+	}
 }
 
 var selectCard = function (i){
@@ -431,6 +503,9 @@ var canUseAttack = function (side, attack){
 	if (poke.attacks.length <= attack){
 		return false;
 	}
+	if (poke.status === "slp" || poke.status === "frz"){
+		return false;
+	}
 	var leftovers = 0;
 	/*
 	for (var type in poke.attacks[attack].cost){
@@ -467,8 +542,6 @@ var canUseAttack = function (side, attack){
 	}
 	if (poke.attacks[attack].cost.colorless){
 		if (leftovers < poke.attacks[attack].cost.colorless){
-			console.log("not enough colorless energy to use " + poke.attacks[attack].name);
-			console.log("leftovers = " + leftovers + ", cost = " + poke.attacks[attack].cost.colorless);
 			return false;
 		}
 	}
@@ -481,6 +554,27 @@ var attack = function (side, attack){
 		return false;
 	}
 	if (canUseAttack(side, attack)){
+		if (game.sides[side].active.status === "prz" && Math.random() < 0.5){
+			logMessage(game.sides[side].active.name + " is paralyzed! It couldn't move!");
+			game.pokemonAction = true;
+			return true;
+		}
+		if (game.sides[side].active.status === "cnf"){
+			if (Math.random() > 0.5){
+				logMessage(game.sides[side].active.name + " snapped out of confusion!");
+				game.sides[side].active.status = "";
+			} else {
+				if (Math.random() < 0.5){
+					logMessage(game.sides[side].active.name + " hurt itself in confusion!");
+					game.sides[side].active.health -= 10;
+					if (game.sides[side].active.health <= 0){
+						fainted(side, 0);
+					}
+					game.pokemonAction = true;
+					return true;
+				}
+			}
+		}
 		var attackObj = game.sides[side].active.attacks[attack];
 		logMessage(game.sides[side].active.name + " attacks using " + attackObj.name);
 		var damage = attackObj.damage;
@@ -553,7 +647,7 @@ var fainted = function (side, index){
 
 var switchActive = function (side, index){
 	//index is the index of the benched pokemon we're switching with
-	if (!game.sides[side].bench[index-1] || game.pokemonAction){
+	if (!game.sides[side].bench[index-1] || (game.sides[side].active && game.pokemonAction)){
 		return false;
 	} else {
 		var temp = game.sides[side].active;
@@ -582,6 +676,10 @@ var switchActive = function (side, index){
 			//Only prevent the team from attacking if they've switched two pokemon
 			//Instead of if they're moving in a new poke
 			game.pokemonAction = true;
+			//Also take this opportunity to cure confusion
+			if (game.sides[side].bench[index-1].status === "cnf"){
+				game.sides[side].bench[index-1].status = "";
+			}
 		}
 		return true;
 	}
