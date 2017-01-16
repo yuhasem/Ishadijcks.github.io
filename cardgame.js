@@ -237,6 +237,9 @@ var endGame = function (win){
 }
 
 var startTurn = function (){
+	if (!playingGame){
+		return;
+	}
 	dealBrnDamage(1);
 	dealPsnDamage(1);
 	logMessage("It's your turn!");
@@ -252,6 +255,9 @@ var startTurn = function (){
 }
 
 var endTurn = function (){
+	if (!playingGame){
+		return;
+	}
 	game.sideTurn = 1;
 	if (game.sides[0].active === null){
 		logMessage("You didn't have an active pokemon at the end of the turn");
@@ -640,6 +646,7 @@ var fainted = function (side, index){
 	logMessage(poke.name + " fainted!");
 	if (game.sides[side].defeated >= stopAfter){
 		endGame(side);
+		return;
 	}
 	discard(side, poke); //Need to have onDiscard trigger after the end game check
 	//Actually the position of discard causes a confusing logMessage order...

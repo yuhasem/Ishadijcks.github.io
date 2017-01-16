@@ -39,9 +39,70 @@ var attacks = [
 		 card.health = card.maxHealth;
 	 }
 	 logMessage(card.name + " was healed!");
+	 return 0;
  }},
 {name: "Submission", damage: 50, cost: {"colorless": 1, "fighting": 1}, element: "fighting"},
-{name: "Sludge", damage: 50, cost: {"colorless": 1, "poison": 1}, element: "poison"}
+{name: "Sludge", damage: 50, cost: {"colorless": 1, "poison": 1}, element: "poison"},
+{name: "Thunder Wave", damage: 0, cost: {"electric": 2}, element: "electric",
+ onUse: function (game, card){
+	 if (game.sides[0].active == card){
+		 game.sides[1].active.status = "prz";
+		 console.log("prz applies to " + game.sides[1].active.name); //Needs logMessage()
+	 } else {
+		 game.sides[0].active.status = "prz";
+		 console.log("prz applies to " + game.sides[0].active.name); //Needs logMessage()
+	 }
+	 return 0;
+ }
+},
+{name: "Foul Gas", damage: 0, cost: {"poison": 2, "colorless": 1}, element: "poison",
+ onUse: function (game, card){
+	 if (game.sides[0].active == card){
+		 if (Math.random() > 0.5){
+			 game.sides[1].active.status = "psn";
+			 console.log("psn applies to " + game.sides[1].active.name); //Needs logMessage()
+		 } else {
+			 game.sides[1].active.status = "slp";
+			 console.log("slp applies to " + game.sides[1].active.name); //Needs logMessage()
+		 }
+	 } else {
+		 if (Math.random() > 0.5){
+			 game.sides[0].active.status = "psn";
+			 console.log("psn applies to " + game.sides[0].active.name); //Needs logMessage()
+		 } else {
+			 game.sides[0].active.status = "slp";
+			 console.log("skp applies to " + game.sides[0].active.name); //Needs logMessage()
+		 }
+	 }
+	 return 0;
+ }
+},
+{name: "Will-O-Wisp", damage: 0, cost: {"fire": 2}, element: "fire",
+ onUse: function (game, card){
+	 if (game.sides[0].active == card){
+		 game.sides[1].active.status = "brn";
+		 console.log("brn applies to " + game.sides[1].active.name); //Needs logMessage()
+	 } else {
+		 game.sides[0].active.status = "brn";
+		 console.log("brn applies to " + game.sides[0].active.name); //Needs logMessage()
+	 }
+	 return 0;
+ }
+},
+{name: "Powder Snow", damage: 20, cost: {"ice": 2}, element: "ice",
+ onUse: function (game, card) {
+	 if (Math.random() > 0.5){
+		 if (game.sides[0].active == card){
+			 game.sides[1].active.status = "frz";
+			 console.log("frz applies to " + game.sides[1].active.name); //Needs logMessage()
+		 } else {
+			 game.sides[0].active.status = "frz";
+			 console.log("frz applies to " + game.sides[0].active.name); //Needs logMessage()
+		 }
+	 }
+	 return this.damage;
+ }
+}
 ];
 
 var cardList = [
@@ -59,7 +120,7 @@ var cardList = [
 {id: "Spearow", name: "Spearow", type: "poke", species: "Spearow", stage: 0, maxHealth: 40, attacks: [attacks[17]], element: "flying"},
 {id: "Fearow", name: "Fearow", type: "poke", species: "Fearow", stage: 1, maxHealth: 70, attacks: [attacks[18]], element: "flying"},
 {id: "Ragemander", name: "Wild Charmander", type: "poke", species: "Charmander", stage: 0, maxHealth: 40, attacks: [attacks[19]], element: "fire"},
-{id: "Electabuzz", name: "Electabuzz", type: "poke", species: "Electabuzz", stage: 0, maxHealth: 60, attacks: [attacks[20]], element: "electric",
+{id: "Electabuzz", name: "Electabuzz", type: "poke", species: "Electabuzz", stage: 0, maxHealth: 60, attacks: [attacks[20], attacks[24]], element: "electric",
  onAttachEnergy: function (game, poke, energy) {
 	 if (energy.element === "electric"){
 		 poke.health += 10;
@@ -120,6 +181,9 @@ var cardList = [
 		 }
 	 }
  }},
+{id: "Growlithe", name: "Growlithe", type: "poke", species: "Growlithe", stage: 0, maxHealth: 50, attacks: [attacks[3], attacks[26]], element: "fire"},
+{id: "Koffing", name: "Koffing", type: "poke", species: "Koffing", stage: 0, maxHealth: 40, attacks: [attacks[23], attacks[25]], element: "poison"},
+{id: "Jynx", name: "Jynx", type: "poke", species: "Jynx", stage: 0, maxHealth: 60, attacks: [attacks[27]], element: "ice"},
 {id: "Grass Energy", name: "Grass Energy", type: "energy", element: "grass", value: 1},
 {id: "Fire Energy", name: "Fire Energy", type: "energy", element: "fire", value: 1},
 {id: "Water Energy", name: "Water Energy", type: "energy", element: "water", value: 1},
@@ -129,6 +193,7 @@ var cardList = [
 {id: "Fighting Energy", name: "Fighting Energy", type: "energy", element: "fighting", value: 1},
 {id: "Poison Energy", name: "Poison Energy", type: "energy", element: "poison", value: 1},
 {id: "Psychic Energy", name: "Psychic Energy", type: "energy", element: "psychic", value: 1},
+{id: "Ice Energy", name: "Ice Energy", type: "energy", element: "ice", value: 1},
 {id: "Potion", name: "Potion", type: "item",
  onTarget: function(game, target, side) {
 	 if (target.type === "poke"){
