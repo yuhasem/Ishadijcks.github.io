@@ -271,7 +271,7 @@ var endTurn = function (){
 	logMessage("It's you opponent's turn!");
 	slpEndCheck(1);
 	frzEndCheck(1);
-	//Technically, I think opponent's card draw should be here TODO
+	drawCard(1);
 	opponentTurn();
 }
 
@@ -621,6 +621,7 @@ var attack = function (side, attack){
 		if (game.sides[otherSide].active.health <= 0){
 			fainted(otherSide, 0);
 		}
+		//This is where recoil damage would go. I'm thinking about an afterDamage(game, side, attacker, defender, damage) function for attacks TODO
 		game.pokemonAction = true;
 		showCardGame();
 		return true;
@@ -817,10 +818,8 @@ var attachEnergy = function (poke, energy){
 }
 
 var opponentTurn = function (){
-	console.log("drawing card");
-	drawCard(1);
 	if (!game.sides[1].active){
-		console.log("no active (search 1)");
+		//console.log("no active (search 1)");
 		//If we don't have an active pokemon search for one to put in
 		//First search the bench
 		for (var i = 0; i < game.sides[1].bench.length; i++){
@@ -831,7 +830,7 @@ var opponentTurn = function (){
 		}
 		//Then search our hand (if we still haven't found one)
 		if (!game.sides[1].active){
-			console.log("no active (search 2)");
+			//console.log("no active (search 2)");
 			for (var i = 0; i < game.sides[1].hand.length; i++){
 				var card = game.sides[1].hand[i];
 				if (card.type === "poke" && card.stage == 0){
@@ -844,17 +843,17 @@ var opponentTurn = function (){
 		}
 	}
 	if (game.sides[1].active){
-		console.log("stage 0 poke search");
+		//console.log("stage 0 poke search");
 		//If we have any stage 0 pokes in our hand, let's play them to the bench if there's room
 		for (var i = 0; i < game.sides[1].hand.length; i++){
 			var card = game.sides[1].hand[i];
 			if (card.type === "poke" && card.stage == 0){
-				console.log("found 1 at index " + i);
+				//console.log("found 1 at index " + i);
 				for (var j = 0; j < game.sides[1].bench.length; j++){
 					if (!game.sides[1].bench[j]){
-						console.log("open space at bench " + j);
+						//console.log("open space at bench " + j);
 						if (playCard(1, card, j+1)){
-							console.log("card played");
+							//console.log("card played");
 							game.sides[1].hand.splice(i, 1);
 							i--; // because we want to check the next card in the hand but we just removed one
 							break;
@@ -863,32 +862,32 @@ var opponentTurn = function (){
 				}
 			}
 		}
-		console.log("evo search 1");
-		//For every poke we have out, let's see if we have an evolution in out hand, starting with our active poke
+		//console.log("evo search 1");
+		//For every poke we have out, let's see if we have an evolution in our hand, starting with our active poke
 		for (var i = 0; i < game.sides[1].hand.length; i++){
 			var card = game.sides[1].hand[i];
 			var poke = getPokemonByName(game.sides[1].active.species);
 			if (card.type === "poke" && poke.evolution && poke.evolution.indexOf(card.species) >= 0){
-				console.log("found 1 at index " + i);
+				//console.log("found 1 at index " + i);
 				if (evolve(1, game.sides[1].active, card, 0)){
-					console.log("evo played");
+					//console.log("evo played");
 					game.sides[1].hand.splice(i, 1);
 					break; //only do one evo per turn (even though there's really nothing stopping you from doing as many as you'd like)
 				}
 			}
 		}
-		console.log("evo search 2");
+		//console.log("evo search 2");
 		for (var i = 0; i < game.sides[1].bench.length; i++){
 			var base = game.sides[1].bench[i];
 			if (base){
-				console.log("searching for an evo to index " + i + ", name " + base.name);
+				//console.log("searching for an evo to index " + i + ", name " + base.name);
 				for (var j = 0; j < game.sides[1].hand.length; j++){
 					var card = game.sides[1].hand[j];
 					var poke = getPokemonByName(base.species);
 					if (card.type === "poke" && poke.evolution && poke.evolution.indexOf(card.species) >= 0){
-						console.log("found a match");
+						//console.log("found a match");
 						if (evolve(1, base, card, i+1)){
-							console.log("evo played");
+							//console.log("evo played");
 							game.sides[1].hand.splice(j, 1);
 							break;
 						}
@@ -896,19 +895,19 @@ var opponentTurn = function (){
 				}
 			}
 		}
-		console.log("energy search");
+		//console.log("energy search");
 		//If we have an energy in our hand, play it to the active poke
 		for (var i = 0; i < game.sides[1].hand.length; i++){
 			var card = game.sides[1].hand[i];
 			if (card.type === "energy"){
-				console.log("found and attaching energy + " + i);
+				//console.log("found and attaching energy + " + i);
 				if (attachEnergy(game.sides[1].active, card)){
 					game.sides[1].hand.splice(i, 1);
 					break;
 				}
 			}
 		}
-		console.log("attack search");
+		//console.log("attack search");
 		//If our active can use an attack, use one, prioritizing highest damage
 		var chosenAttack = -1;
 		var chosenDamage = 0;
@@ -919,7 +918,7 @@ var opponentTurn = function (){
 				chosenDamage = att.damage;
 			}
 		}
-		console.log("attack " + chosenAttack + ", damage " + chosenDamage);
+		//console.log("attack " + chosenAttack + ", damage " + chosenDamage);
 		if (chosenAttack >= 0){
 			attack(1, chosenAttack);
 		}
