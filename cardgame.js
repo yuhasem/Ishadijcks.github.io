@@ -547,6 +547,9 @@ var canUseAttack = function (side, attack){
 		}
 	}
 	if (poke.attacks[attack].cost.colorless){
+		if (poke.energyTotal["colorless"]){
+			leftovers += poke.energyTotal["colorless"];
+		}
 		if (leftovers < poke.attacks[attack].cost.colorless){
 			return false;
 		}
@@ -622,6 +625,9 @@ var attack = function (side, attack){
 			fainted(otherSide, 0);
 		}
 		//This is where recoil damage would go. I'm thinking about an afterDamage(game, side, attacker, defender, damage) function for attacks TODO
+		if (attackObj.afterDamage){
+			attackObj.afterDamage(game, side, game.sides[side].active, game.sides[otherSide].active, damage);
+		}
 		game.pokemonAction = true;
 		showCardGame();
 		return true;

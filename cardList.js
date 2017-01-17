@@ -15,7 +15,7 @@ var attacks = [
 {name: "Water Gun", damage: 20, cost: {"water": 1}, element: "water"},
 {name: "Surf", damage: 40, cost: {"water": 2}, element: "water"},
 {name: "Hydro Pump", damage: 80, cost: {"water": 3}, element: "water"},
-{name: "Hyper Fang", damage: 60, cost: {"normal": 2}, element: "normal"},
+{name: "Hyper Fang", damage: 60, cost: {"colorless": 2}, element: "normal"},
 {name: "Peck", damage: 20, cost: {"flying": 1}, element: "flying"},
 {name: "Wing Attack", damage: 50, cost: {"flying": 2}, element: "flying"},
 {name: "Rage", damage: 10, cost: {"colorless": 2}, element: "normal",
@@ -41,7 +41,16 @@ var attacks = [
 	 logMessage(card.name + " was healed!");
 	 return 0;
  }},
-{name: "Submission", damage: 50, cost: {"colorless": 1, "fighting": 1}, element: "fighting"},
+{name: "Submission", damage: 50, cost: {"colorless": 1, "fighting": 1}, element: "fighting",
+ afterDamage: function (game, side, attacker, defender, damage){
+	 if (damage > 0){
+		 attacker.health -= 20;
+		 if (attacker.health <= 0){
+			 fainted(side, 0);
+		 }
+	 }
+ }
+},
 {name: "Sludge", damage: 50, cost: {"colorless": 1, "poison": 1}, element: "poison"},
 {name: "Thunder Wave", damage: 0, cost: {"electric": 2}, element: "electric",
  onUse: function (game, card){
@@ -157,7 +166,7 @@ var cardList = [
 		 }
 	 }
  }},
-{id: "Machop", name: "Machop", type: "poke", species: "Machop", stage: 0, maxHealth: 50, attacks: [attacks[22]], element: "fighting",
+{id: "Machop", name: "Machop", type: "poke", species: "Machop", stage: 0, maxHealth: 50, attacks: [attacks[22]], element: "fighting"/*,
  onDealDamage: function (game, attacker, defender, damage){
 	 attacker.health -= 20;
 	 logMessage(attacker.name + "'s Reckless hurt itself in the attack!");
@@ -168,7 +177,7 @@ var cardList = [
 			 fainted(1, 0);
 		 }
 	 }
- }},
+ }*/},
 {id: "KogaIvy", name: "Koga's Ivysaur", type: "poke", species: "Ivysaur", stage: 1, maxHealth: 60, attacks: [attacks[4],attacks[23]], element: "poison",
  onDiscard: function (game, card, side){
 	 var otherSide = (side + 1) % 2;
@@ -187,7 +196,7 @@ var cardList = [
 {id: "Grass Energy", name: "Grass Energy", type: "energy", element: "grass", value: 1},
 {id: "Fire Energy", name: "Fire Energy", type: "energy", element: "fire", value: 1},
 {id: "Water Energy", name: "Water Energy", type: "energy", element: "water", value: 1},
-{id: "Normal Energy", name: "Normal Energy", type: "energy", element: "normal", value: 1},
+{id: "Colorless Energy", name: "Colorless Energy", type: "energy", element: "colorless", value: 1},
 {id: "Flying Energy", name: "Flying Energy", type: "energy", element: "flying", value: 1},
 {id: "Electric Energy", name: "Electric Energy", type: "energy", element: "electric", value: 1},
 {id: "Fighting Energy", name: "Fighting Energy", type: "energy", element: "fighting", value: 1},
@@ -290,3 +299,12 @@ var newCard = function (id){
 //		side is the side (0 or 1) that played the item.
 //	gets called when an item is targeting a card. This can be used for potions and other healing items to restore health.
 //	NOTE: targerting opponent cards is not yet implemented, this effect cannot be used to debuff opponent cards
+//afterDamage - base: attack
+//	signature: null afterDamage(game, side, attacker, defender, damage)
+//		game is the game object,
+//		side is the side that made the attack
+//		attacker is the card that attacked
+//		defender is the card that defended the attack, it could be null if damage was lethal
+//		damage is the amount of damage done to defender on this attack
+//	gets called after an attack deals damage
+//	This is the best effect to use for recoil damage
