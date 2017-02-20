@@ -783,6 +783,7 @@ var capturePokemon = function(name, shiny){
 	updateStats();
 	checkOakItems();
 	sortChange();
+	updateBillsChallenge(name);
 }
 
 // Checks if you already caught a pokemon
