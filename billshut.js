@@ -26,10 +26,13 @@ var WEST = 1;
 var SOUTH = 2;
 var EAST = 3;
 
+var caveSizeX = 10;
+var caveSizeY = 10;
+
 var bill = { // TODO: move to player object, integrate with save/load
 	stage: NOT_STARTED,
 	attempts: 0,
-	cave: null,
+	cave: [],
 	caveEncounters: [],
 	inEncounter: false,
 	encounterStage: BREAK,
@@ -46,13 +49,10 @@ var Encounter = function (x, y, name) {
 }
 
 var getTodaysChallenge = function () {
-	if (todaysChallenge === ""){
-		var d = new Date();
-		var dateSeed = Number(d.getDate() + 1000*d.getMonth()*d.getYear() + 100000*d.getDate());
-		var pokemonRand = seededRand(dateSeed);
-		todaysChallenge = pokemonList[Math.floor(pokemonList.length * (pokemonRand/233280))];
-	}
-	return todaysChallenge;
+	var d = new Date();
+	var dateSeed = Number(d.getDate() + 1000*d.getMonth()*d.getYear() + 100000*d.getDate());
+	var pokemonRand = seededRand(dateSeed);
+	return pokemonList[Math.floor(pokemonList.length * (pokemonRand/233280))];
 }
 
 var showBillsHut = function () {
@@ -82,18 +82,48 @@ var showBillsHut = function () {
 	}
 }
 
-var showBillsMessage(message, img){
+var showBillsMessage = function(message, img){
 	var html = "";
-	
-	
 }
 
 var showBillsCave = function () {
 	if (bill.inEncounter){
 		showBillsEncounter();
 	} else {
-		var html = "";
+		var caveEl = document.getElementById("caveView");
+		for (var i = 0; i < bill.cave.length; i++){
+			var rowEl = document.createElement("div");
+			for (var j = 0; j < bill.cave[0].length; j++){
+				var colEl = document.createElement("div");
+				colEl.className = "cavesquare";
+				for (var k = 0; k < 4; k++){
+					if (bill.cave[i][j] % (1 << (k + 1)) >= 1 << k){
+						switch (k){
+							case NORTH:
+								colEl.style.borderTopWidth = 0;
+								break;
+							case WEST:
+								colEl.style.borderLeftWidth = 0;
+								break;
+							case SOUTH:
+								colEl.style.borderBottomWidth = 0;
+								break;
+							case EAST:
+								colEl.style.borderRightWidth = 0;
+						}
+					}
+				}
+				rowEl.appendChild(colEl);
+			}
+			caveEl.appendChild(rowEl);
+		}
 	}
+	document.getElementById("currentEnemy").style.display = "none";
+	document.getElementById("townView").style.display = "none";
+	document.getElementById("shopView").style.display = "none";
+	document.getElementById("dungeonView").style.display = "none";
+	document.getElementById("gymView").style.display = "none";
+	
 }
 
 var showBillsEncounter = function () {
@@ -101,18 +131,10 @@ var showBillsEncounter = function () {
 }
 
 var updateBillsChallenge = function (name) {
-	if (name === getTodaysChallenge() && bill.stage === STARTED){
+	if (name === getTodaysChallenge().name && bill.stage === STARTED){
 		bill.stage = POKE_CAPTURED;
-		$.notify("You caught a "+name + "! Visit Bill to get a reward!", 'success'); //TODO: custom Bill notification?
+		$.notify("You caught a " + name + "! Visit Bill to get a reward!", 'success'); //TODO: custom Bill notification?
 	}
-}
-
-var makeCave = function () {
-	// Use a randomized Depth First Search to generate a map. Make Encounters will probably be a part of this as well.
-}
-
-var makeEncounters = function () {
-	
 }
 
 var startCave = function () {
@@ -127,9 +149,113 @@ var moveCave = function (dir) {
 			break;
 		case SOUTH:
 			break;
-		case EAST;
+		case EAST:
 			break;
 		default:
 			console.log(dir + " is not a direction");
 	}
+}
+
+var makeCave = function () {
+	for (var i = 0; i < caveSizeX; i++){
+		var row = [];
+		for (var j = 0; j < caveSizeY; j++){
+			row.push(0);
+		}
+		bill.cave.push(row);
+	}
+	// Use a randomized Depth First Search to generate a map. Make Encounters will probably be a part of this as well.
+	var stack = [{x: 0, y: 0, sinceLastEnc: 0, fromDir: WEST}]; //(0,0) is the starting square
+	while (stack.length > 0){
+		var currentNode = stack.pop();
+		//console.log("trying node at " + currentNode.x + ", " + currentNode.y + " from " + currentNode.fromDir);
+		if (bill.cave[currentNode.x][currentNode.y] > 0){
+			//console.log("node already visited");
+			continue;
+		}
+		var changeNeighbor = getNeigbor(currentNode.x, currentNode.y, currentNode.fromDir);
+		if (changeNeighbor !== undefined){
+			bill.cave[changeNeighbor.x][changeNeighbor.y] += 1 << oppositeDir(currentNode.fromDir);
+			bill.cave[currentNode.x][currentNode.y] += 1 << currentNode.fromDir;
+		}
+		var neighbors = getNeighbors(currentNode.x, currentNode.y);
+		while (neighbors.length > 0){
+			var index = Math.floor(Math.random() * neighbors.length);
+			var newNode = neighbors.splice(index, 1)[0];
+			newNode.sinceLastEnc = currentNode.sinceLastEnc + 1;
+			stack.push(newNode);
+		}
+	}
+	
+}
+
+var getNeighbors = function(x, y){
+	var neighbors = [];
+	if (x > 0){
+		neighbors.push({x: x-1, y: y, fromDir: SOUTH});
+	}
+	if (x < caveSizeX-1){
+		neighbors.push({x: x+1, y: y, fromDir: NORTH});
+	}
+	if (y > 0){
+		neighbors.push({x: x, y: y-1, fromDir: EAST});
+	}
+	if (y < caveSizeY-1){
+		neighbors.push({x: x, y: y+1, fromDir: WEST});
+	}
+	return neighbors;
+}
+
+var getNeigbor = function(x, y, dir){
+	switch (dir){
+		case NORTH:
+			if (x > 0){
+				return {x: x-1, y: y};
+			} else {
+				return undefined;
+			}
+			break;
+		case WEST:
+			if (y > 0){
+				return {x: x, y: y-1};
+			} else {
+				return undefined;
+			}
+			break;
+		case SOUTH:
+			if (x < caveSizeX-1){
+				return {x: x+1, y: y};
+			} else {
+				return undefined;
+			}
+			break;
+		case EAST:
+			if (y < caveSizeY-1){
+				return {x: x, y: y+1};
+			} else {
+				return undefined;
+			}
+			break;
+		default:
+			return undefined;
+	}
+}
+
+var oppositeDir = function (dir){
+	switch (dir){
+		case NORTH:
+			return SOUTH;
+		case SOUTH:
+			return NORTH;
+		case WEST:
+			return EAST;
+		case EAST:
+			return WEST;
+		default:
+			return 0;
+	}
+}
+
+var makeEncounters = function () {
+	
 }
