@@ -66,6 +66,7 @@ var showBillsHut = function () {
 			break;
 		case POKE_CAPTURED:
 			// TODO: initialize dungeon and dungeonEncs
+			makeCave();
 			showBillsMessage("", "");
 			break;
 		case STARTED_DUNGEON:
@@ -91,11 +92,16 @@ var showBillsCave = function () {
 		showBillsEncounter();
 	} else {
 		var caveEl = document.getElementById("caveView");
+		caveEl.innerHTML = "";
 		for (var i = 0; i < bill.cave.length; i++){
 			var rowEl = document.createElement("div");
+			rowEl.className = "cavaerow";
 			for (var j = 0; j < bill.cave[0].length; j++){
 				var colEl = document.createElement("div");
 				colEl.className = "cavesquare";
+				if (bill.posX == i && bill.posY == j){
+					colEl.className += " occupied";
+				}
 				for (var k = 0; k < 4; k++){
 					if (bill.cave[i][j] % (1 << (k + 1)) >= 1 << k){
 						switch (k){
@@ -142,18 +148,37 @@ var startCave = function () {
 }
 
 var moveCave = function (dir) {
-	switch (dir){
-		case NORTH:
-			break;
-		case WEST:
-			break;
-		case SOUTH:
-			break;
-		case EAST:
-			break;
-		default:
-			console.log(dir + " is not a direction");
+	if (bill.cave[bill.posX][bill.posY] % (1 << (dir + 1)) >= 1 << dir){
+		switch (dir){
+			case NORTH:
+				bill.posX--;
+				break;
+			case WEST:
+				bill.posY--;
+				break;
+			case SOUTH:
+				bill.posX++;
+				break;
+			case EAST:
+				bill.posY++;
+				break;
+			default:
+				console.log(dir + " is not a direction");
+		}
+	} else {
+		console.log("dir: " + dir + " did not allow for movement on " + bill.cave[bill.posX][bill.posY]);
 	}
+	// TODO: Check for encounters on the new square
+	showBillsCave();
+}
+
+var encounterAt = function (x, y){
+	for (var i = 0; i < bill.caveEncounters.length; i++){
+		if (bill.caveEncounters[i].atX == x && bill.caveEncounters[i].atY == y){
+			return i;
+		}
+	}
+	return -1;
 }
 
 var makeCave = function () {
@@ -177,6 +202,10 @@ var makeCave = function () {
 		if (changeNeighbor !== undefined){
 			bill.cave[changeNeighbor.x][changeNeighbor.y] += 1 << oppositeDir(currentNode.fromDir);
 			bill.cave[currentNode.x][currentNode.y] += 1 << currentNode.fromDir;
+		}
+		if (currentNode.sinceLastEnc >= 5){
+			currentNode.sinceLastEnc = 0;
+			bill.caveEncounters.push(new Encounter(currentNode.x, currentNode.y, "Alakazam"));
 		}
 		var neighbors = getNeighbors(currentNode.x, currentNode.y);
 		while (neighbors.length > 0){
@@ -254,8 +283,4 @@ var oppositeDir = function (dir){
 		default:
 			return 0;
 	}
-}
-
-var makeEncounters = function () {
-	
 }

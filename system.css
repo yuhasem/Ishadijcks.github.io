@@ -710,6 +710,15 @@ g, rect {
 	width: 20px;
 	display: inline-block;
 }
+.caverow {
+	height: 20px;
+	padding: 0;
+	border: 0;
+	margin: 0;
+}
+.occupied {
+	background-color: green;
+}
 
 /* http://stackoverflow.com/questions/826782/how-to-disable-text-selection-highlighting-using-css */
 .noselect {
